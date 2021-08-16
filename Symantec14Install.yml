@@ -1,0 +1,43 @@
+- hosts: all
+  become: true
+  tasks:
+
+    - name: i386 libraries
+    command: dpkg --add-architecture i386
+
+  - name: update repositories
+    apt:
+      update_cache: yes
+    changed_when: False
+
+  - name: Install packages for Symantec
+    apt:
+      name:   
+        - libc6:i386
+        - libx11-6:i386
+        - libncurses5:i386
+        - libstdc++6:i386
+
+  - name: ansible create local directory /tmp/sep
+    file:
+      path: /tmp/sep
+      state: directory
+  
+  - name: Copy Symantec folder
+    unarchive:
+      src: /AntiVirus/SymantecEndpointProtection.zip
+      dest: /tmp/sep
+      remote_src: yes
+  
+  - name: Change file ownership, group and permissions
+    local_action:
+      module: file
+      path: /tmp/sep/SymantecEndpointProtection/install.sh
+      owner: root
+      group: root
+      mode: '0777'
+
+  - name: Install Symantec Endpoint
+    command: /tmp/sep/SymantecEndpointProtection/install.sh -i
+
+...        
